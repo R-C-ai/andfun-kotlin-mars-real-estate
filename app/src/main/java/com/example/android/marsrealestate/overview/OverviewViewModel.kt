@@ -17,9 +17,9 @@
 
 package com.example.android.marsrealestate.overview
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.*
+import com.example.android.marsrealestate.R
 import com.example.android.marsrealestate.network.MarsApi
 import com.example.android.marsrealestate.network.MarsApiFilter
 import com.example.android.marsrealestate.network.MarsProperty
@@ -32,7 +32,8 @@ enum class MarsApiStatus { LOADING, ERROR, DONE }
 /**
  * The [ViewModel] that is attached to the [OverviewFragment].
  */
-class OverviewViewModel : ViewModel() {
+class OverviewViewModel : ViewModel()
+       {
 
     // The internal MutableLiveData that stores the status of the most recent request
     private val _status = MutableLiveData<MarsApiStatus>()
@@ -40,6 +41,46 @@ class OverviewViewModel : ViewModel() {
     // The external immutable LiveData for the request status
     val status: LiveData<MarsApiStatus>
         get() = _status
+
+
+    val displayPropertyPrice = Transformations.map(MarsApiStatus) {
+        app.applicationContext.getString(
+                when (it.isRental) {
+                    true -> R.string.display_price_monthly_rental
+                    false -> R.string.display_price
+                }, it.price)
+    }
+
+    // The displayPropertyType formatted Transformation Map LiveData, which displays the
+    // "For Rent/Sale" String
+    val displayPropertyType = Transformations.map(MarsApiStatus) {
+        app.applicationContext.getString(R.string.display_type,
+                app.applicationContext.getString(
+                        when(it.isRental) {
+                            true -> R.string.type_rent
+                            false -> R.string.type_sale
+                        }))
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Internally, we use a MutableLiveData, because we will be updating the List of MarsProperty
     // with new values
