@@ -36,36 +36,49 @@ enum class MarsApiStatus { LOADING, ERROR, DONE }
  */
 class OverviewViewModel : ViewModel()
        {
-
     // The internal MutableLiveData that stores the status of the most recent request
     private val _status = MutableLiveData<MarsApiStatus>()
-
     // The external immutable LiveData for the request status
     val status: LiveData<MarsApiStatus>
         get() = _status
 
 
-           // The displayPropertyPrice formatted Transformation Map LiveData, which displays the sale
-           // or rental price.
-           val displayPropertyPrice = Transformations.map(_properties) {
-               app.applicationContext.getString(
-                       when (it.isRental) {
-                           true -> R.string.display_price_monthly_rental
-                           false -> R.string.display_price
-                       }, it.price)
-           }
 
-           // The displayPropertyType formatted Transformation Map LiveData, which displays the
-           // "For Rent/Sale" String
-           val displayPropertyType = Transformations.map(_properties) {
-               app.applicationContext.getString(R.string.display_type,
-                       app.applicationContext.getString(
-                               when(it.isRental) {
-                                   true -> R.string.type_rent
-                                   false -> R.string.type_sale
-                               }))
-           }
 
+           class ppViewModel(marsProperty: MarsProperty, app: Application) : AndroidViewModel(app) {
+               private val _ppProperty = MutableLiveData<MarsProperty>()
+
+               // The external LiveData for the SelectedProperty
+               val ppProperty: LiveData<MarsProperty>
+                   get() = _ppProperty
+
+               // Initialize the _selectedProperty MutableLiveData
+               init {
+                   _ppProperty.value = marsProperty
+               }
+
+               // The displayPropertyPrice formatted Transformation Map LiveData, which displays the sale
+               // or rental price.
+               val displayPropertyPrice = Transformations.map(ppProperty) {
+                   app.applicationContext.getString(
+                           when (it.isRental) {
+                               true -> R.string.display_price_monthly_rental
+                               false -> R.string.display_price
+                           }, it.price)
+               }
+
+               // The displayPropertyType formatted Transformation Map LiveData, which displays the
+               // "For Rent/Sale" String
+               val displayPropertyType = Transformations.map(ppProperty) {
+                   app.applicationContext.getString(R.string.display_type,
+                           app.applicationContext.getString(
+                                   when(it.isRental) {
+                                       true -> R.string.type_rent
+                                       false -> R.string.type_sale
+                                   }))
+               }
+           }
+ 
 
 
     // Internally, we use a MutableLiveData, because we will be updating the List of MarsProperty

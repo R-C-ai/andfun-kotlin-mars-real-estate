@@ -40,7 +40,7 @@ private const val ITEM_VIEW_TYPE_ITEM =1
  * @param onClick a lambda that takes the
  */
 class PhotoGridAdapter( val onClickListener: OnClickListener ) :
-        ListAdapter<DataItem, Recyclerview.MarsPropertyViewHolder>(DiffCallback) {
+        ListAdapter<DataItem,RecyclerView.ViewHolder>(DiffCallback()) {
     /**
      * The MarsPropertyViewHolder constructor takes the binding variable from the associated
      * GridViewItem, which nicely gives it access to the full [MarsProperty] information.
@@ -75,7 +75,7 @@ class PhotoGridAdapter( val onClickListener: OnClickListener ) :
      * Create new [RecyclerView] item views (invoked by the layout manager)
      */
     override fun onCreateViewHolder(parent: ViewGroup,
-                                    viewType: Int): RecyclerView.MarsPropertyViewHolder {
+                                    viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             ITEM_VIEW_TYPE_HEADER -> TextViewHolder.from(parent)
             ITEM_VIEW_TYPE_ITEM -> MarsPropertyViewHolder.from(parent)
@@ -84,7 +84,7 @@ class PhotoGridAdapter( val onClickListener: OnClickListener ) :
         }
     }
 
-    class TextViewHolder(view:View) : RecyclerView.MarsPropertyViewHolder(view){
+    class TextViewHolder(view:View) : RecyclerView.ViewHolder(view){
         companion object {
             fun from (parent:ViewGroup) : TextViewHolder {
                 val layoutInflater = LayoutInflater.from(parent.context)
@@ -103,15 +103,34 @@ class PhotoGridAdapter( val onClickListener: OnClickListener ) :
         }
     }
 
-    fun addHeaderAndSubMitList(list:List<MarsProperty>?){
-        adapterScope.launch {
-            val item = when (list) {
-                null -> listOf (DataItem.Header)
-                else -> listOf (DataItem.Header) + list.map DataItem.MarsPropertyItem(it)
+    class ViewHolder private constructor(val binding: ListItemMarsPropertyBinding)
+        : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(onClickListener: MarsPropertyListener, item: MarsProperty) {
+            binding.property = item
+            binding.clickListener = onClickListener
+            binding.executePendingBindings()
+        }
+
+        companion object {
+            fun from(parent: ViewGroup): ViewHolder {
+                val layoutInflater = LayoutInflater.from(parent.context)
+                val binding = ListItemMarsPropertyBinding.inflate(layoutInflater, parent, false)
+
+                return ViewHolder(binding)
             }
         }
-             withContext(Dispatchers.Main) {
-            submitList(items)
+    }
+
+    fun addHeaderAndSubMitList(list:List<MarsProperty>?){
+        adapterScope.launch {
+            val items = when (list) {
+                null -> listOf(DataItem.Header)
+                else -> listOf(DataItem.Header) + list.map { DataItem.MarsPropertyItem(it) }
+            }
+            withContext(Dispatchers.Main) {
+                submitList(items)
+            }
         }
     }
 
@@ -119,9 +138,9 @@ class PhotoGridAdapter( val onClickListener: OnClickListener ) :
     /**
      * Replaces the contents of a view (invoked by the layout manager)
      */
-    override fun onBindViewHolder(holder: RecyclerView.MarsPropertyViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
-            is MarsPropertyViewHolder -> {
+            is RecyclerView.ViewHolder -> {
                 val propertyItem = getItem(position) as DataItem.MarsPropertyItem
                 holder.bind(onClickListener,propertyItem.marsProperty)
             }
