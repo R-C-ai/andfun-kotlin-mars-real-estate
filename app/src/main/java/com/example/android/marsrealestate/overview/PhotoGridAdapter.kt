@@ -40,7 +40,7 @@ private const val ITEM_VIEW_TYPE_ITEM =1
  * @param onClick a lambda that takes the
  */
 class PhotoGridAdapter( val onClickListener: OnClickListener ) :
-        ListAdapter<DataItem,RecyclerView.ViewHolder>(DiffCallback()) {
+        ListAdapter<DataItem,RecyclerView.ViewHolder>(MarsPropertyDiffCallback()) {
     /**
      * The MarsPropertyViewHolder constructor takes the binding variable from the associated
      * GridViewItem, which nicely gives it access to the full [MarsProperty] information.
@@ -59,7 +59,7 @@ class PhotoGridAdapter( val onClickListener: OnClickListener ) :
      * Allows the RecyclerView to determine which items have changed when the [List] of [MarsProperty]
      * has been updated.
      */
-    companion object DiffCallback : DiffUtil.ItemCallback<MarsProperty>() {
+    companion object DiffCallback : DiffUtil.ItemCallback<DataItem>() {
         override fun areItemsTheSame(oldItem: DataItem, newItem: DataItem): Boolean {
             return oldItem == newItem
         }
@@ -78,7 +78,7 @@ class PhotoGridAdapter( val onClickListener: OnClickListener ) :
                                     viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             ITEM_VIEW_TYPE_HEADER -> TextViewHolder.from(parent)
-            ITEM_VIEW_TYPE_ITEM -> MarsPropertyViewHolder.from(parent)
+            ITEM_VIEW_TYPE_ITEM -> ViewHolder.from(parent)
             else ->throw java.lang.ClassCastException ("Unknown viewType ${viewType}")
 
         }
@@ -103,10 +103,10 @@ class PhotoGridAdapter( val onClickListener: OnClickListener ) :
         }
     }
 
-    class ViewHolder private constructor(val binding: ListItemMarsPropertyBinding)
+    class ViewHolder private constructor(val binding: ListItemGridViewBinding)
         : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(onClickListener: MarsPropertyListener, item: MarsProperty) {
+        fun bind(onClickListener: GridViewListener, item: MarsProperty) {
             binding.property = item
             binding.clickListener = onClickListener
             binding.executePendingBindings()
@@ -115,7 +115,7 @@ class PhotoGridAdapter( val onClickListener: OnClickListener ) :
         companion object {
             fun from(parent: ViewGroup): ViewHolder {
                 val layoutInflater = LayoutInflater.from(parent.context)
-                val binding = ListItemMarsPropertyBinding.inflate(layoutInflater, parent, false)
+                val binding = ListItemGridViewBinding.inflate(layoutInflater, parent, false)
 
                 return ViewHolder(binding)
             }
@@ -158,7 +158,7 @@ class PhotoGridAdapter( val onClickListener: OnClickListener ) :
 }
 sealed class DataItem{
     data class MarsPropertyItem(val marsProperty:MarsProperty):DataItem(){
-        override val id = marsProperty.propertyId
+        override val id = marsProperty.gridviewId
     }
 
     object Header : DataItem(){
